@@ -1,0 +1,39 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ./Dockerfile.${NODE_ENV}
+    restart: always
+    depends_on:
+      - db
+    volumes:
+      - ./backend:/app
+    ports:
+      - ${BACKEND_PORT}:3000
+    env_file:
+      - .env
+
+  db:
+    image: mongo
+    command: --quiet --logpath /dev/null
+    restart: always
+    volumes:
+      - db_data:/data/db
+
+  # Uses ningx in production mode see /frontend/Dockerfile.production
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ./Dockerfile.${NODE_ENV}
+    volumes:
+      - ./frontend:/app
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - ${FRONTEND_PORT}:80
+    env_file:
+      - .env
+
+volumes:
+  db_data:
